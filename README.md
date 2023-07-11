@@ -125,6 +125,32 @@ class TaskController extends Controller
 ### Implementação dos modelos e migrações
 No Laravel, utilizamos os modelos para representar as entidades do nosso sistema, nesse caso, a entidade "Task". Podemos criar um modelo para a tarefa utilizando o comando ```"php artisan make:model Task```. Além disso, o Laravel oferece as migrações, que são responsáveis por criar as tabelas no banco de dados. Podemos criar uma migração para a tabela de tarefas utilizando o comando ```php artisan make:migration create_tarefas_table --create=task```.
 
+2023_06_27_21132_creeate_tasks_table.php
+```
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateTasksTable extends Migration
+{
+   public function up()
+   {
+       Schema::create('tasks', function (Blueprint $table) {
+           $table->id();
+           $table->string('title');
+           $table->text('description');
+           $table->boolean('status')->default(false);
+           $table->timestamps();
+       });
+   }
+
+   public function down()
+   {
+       Schema::dropIfExists('tasks');
+   }
+```
 ### Execução das migrações e configuração do banco de dados
 Antes de prosseguir, devemos configurar o arquivo ```.env``` com as informações do banco de dados que iremos utilizar. Em seguida, executamos o comando ```php artisan migrate``` para criar as tabelas no banco de dados. Isso criará a tabela "tasks" com as colunas apropriadas.
 
