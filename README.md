@@ -1,68 +1,139 @@
-**Enunciado: Sistema de Gerenciamento de Tarefas (API)**
+# Desenvolvimento de uma API em PHP utilizando o Framework Laravel
 
-Você foi contratado para desenvolver um sistema de gerenciamento de tarefas utilizando Laravel. O sistema deve fornecer uma API para realizar operações básicas de criação, leitura, atualização e exclusão (CRUD) de tarefas.
+### Configuração do ambiente
+Para começar, é necessário ter o ambiente de desenvolvimento configurado. Isso inclui ter o PHP instalado, bem como o Composer, um gerenciador de dependências do PHP. Além disso, precisamos instalar o Laravel Framework. O Laravel pode ser instalado globalmente ou por projeto usando o Composer.
 
-**Requisitos:**
+### Criação do projeto Laravel
+Com o ambiente devidamente configurado, utilizamos o comando ```composer create-project --prefer-dist laravel/laravel nome-do-projeto``` para criar um novo projeto Laravel. Isso criará uma estrutura inicial para o nosso projeto, incluindo as pastas e arquivos necessários.
 
-1. A API deve ser capaz de lidar com as seguintes operações:
-   - Listar todas as tarefas
-   - Obter detalhes de uma tarefa específica
-   - Criar uma nova tarefa
-   - Atualizar os dados de uma tarefa existente
-   - Excluir uma tarefa
+### Definição das rotas
+No Laravel, as rotas são definidas no arquivo ```routes/api.php```. Neste arquivo, especificamos os endpoints disponíveis e os controladores associados a cada rota. Podemos definir rotas para a criação, leitura, atualização e exclusão de tarefas.
 
-2. Cada tarefa deve conter as seguintes informações:
-   - Título (obrigatório)
-   - Descrição (obrigatório)
-   - Status (concluída ou não concluída)
+### Definição Utilizada:
+api.php
+```
+<?php
 
-3. A API deve seguir as práticas recomendadas para design de APIs RESTful e utilizar os métodos HTTP adequados para cada operação.
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
-4. A resposta da API deve estar no formato JSON.
+Route::get('/tasks', 'TaskController@index');
+Route::get('/tasks/{id}', 'TaskController@show');
+Route::post('/tasks', 'TaskController@store');
+Route::put('/tasks/{id}', 'TaskController@update');
+Route::delete('/tasks/{id}', 'TaskController@destroy');
+```
 
-5. Implemente validações adequadas para garantir que os dados fornecidos estejam corretos antes de executar as operações no banco de dados.
+web.php
+```
+<?php
 
-6. Teste a API utilizando uma ferramenta de testes de API, como o Postman ou o Insomnia.
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TaskController;
 
-7. Documente a API, incluindo informações sobre as rotas disponíveis, os parâmetros necessários e as respostas esperadas.
+Route::get('/tasks', [TaskController::class, 'index']);
+Route::get('/tasks/{id}', [TaskController::class, 'show']);
+Route::post('/tasks', [TaskController::class, 'store']);
+Route::put('/tasks/{id}', [TaskController::class, 'update']);
+Route::delete('/tasks/{id}', [TaskController::class, 'destroy']);
+```
 
-**Dicas:**
+### Criação dos controladores
+Os controladores são responsáveis por tratar as requisições recebidas pelas rotas e retornar as respostas adequadas. Podemos criar um controlador para lidar com as operações CRUD (Create, Read, Update, Delete) relacionadas às tarefas. Cada método dentro do controlador corresponderá a uma operação específica, como criar uma nova tarefa, recuperar uma tarefa existente, atualizar uma tarefa ou excluí-la.
 
-- Use os recursos do Laravel, como rotas, controladores e modelos, para facilitar o desenvolvimento da API.
-- Utilize o sistema de migração do Laravel para criar a tabela de tarefas no banco de dados.
-- Crie um controlador dedicado para manipular as operações relacionadas às tarefas.
-- Utilize o Eloquent ORM para interagir com o banco de dados.
-- Lembre-se de adicionar as validações necessárias nos controladores para garantir a integridade dos dados.
+TaskController.php
+```
+<?php
 
-**Bônus (opcional):**
+namespace App\Http\Controllers;
 
-- Implemente recursos de paginação e ordenação para a listagem de tarefas.
-- Adicione autenticação na API para garantir que apenas usuários autenticados possam acessar as operações de criação, atualização e exclusão de tarefas.
-- Implemente recursos de busca para permitir que os usuários pesquisem tarefas por título, descrição ou status.
+use Illuminate\Http\Request;
+use App\Models\Task;
 
-**Observação:** Esta atividade foca na criação da API, portanto, não é necessário incluir interface HTML. O objetivo é praticar a criação de endpoints e a manipulação dos dados utilizando o Laravel.
+class TaskController extends Controller
+{
+   public function index()
+   {
+       $tasks = Task::all();
 
-----
+       return response()->json($tasks);
+   }
 
+   public function show($id)
+   {
+       $task = Task::find($id);
 
-## Baixando as Dependências de um Projeto Laravel
+       if ($task) {
+           return response()->json($task);
+       } else {
+           return response()->json(['error' => 'Tarefa não encontrada'], 404);
+       }
+   }
 
-Ao clonar um projeto Laravel de um repositório Git, é necessário baixar as dependências do projeto para garantir que todas as bibliotecas e pacotes necessários estejam instalados corretamente. Para isso, siga as etapas abaixo:
+   public function store(Request $request)
+   {
+       $request->validate([
+           'title' => 'required',
+           'description' => 'required',
+       ]);
 
-1. Certifique-se de ter o PHP instalado em sua máquina. Recomenda-se usar a versão suportada pelo projeto Laravel. Você pode verificar a versão suportada no arquivo `composer.json` do projeto.
+       $task = new Task;
+       $task->title = $request->input('title');
+       $task->description = $request->input('description');
+       $task->status = $request->input('status', false);
+       $task->save();
 
-2. Abra um terminal e navegue até o diretório raiz do projeto Laravel clonado.
+       return response()->json($task, 201);
+   }
 
-3. Execute o comando `composer install` para baixar as dependências do projeto. O Composer irá ler o arquivo `composer.json` do projeto e instalar todas as dependências listadas.
+   public function update(Request $request, $id)
+   {
+       $task = Task::find($id);
 
-4. Aguarde até que o Composer conclua o processo de instalação das dependências. Isso pode levar alguns minutos, dependendo da velocidade da sua conexão com a internet.
+       if ($task) {
+           $request->validate([
+               'title' => 'required',
+               'description' => 'required',
+           ]);
 
-5. Após a conclusão, o Composer terá criado um diretório chamado `vendor` no diretório raiz do projeto. Esse diretório contém todas as dependências do projeto Laravel.
+           $task->title = $request->input('title');
+           $task->description = $request->input('description');
+           $task->status = $request->input('status', $task->status);
+           $task->save();
 
-6. Se houver arquivos de ambiente (`.env`) no projeto, copie o arquivo `.env.example` para `.env` e configure as variáveis de ambiente necessárias, como informações do banco de dados e chaves de acesso.
+           return response()->json($task);
+       } else {
+           return response()->json(['error' => 'Tarefa não encontrada'], 404);
+       }
+   }
 
-7. Agora você está pronto para executar o projeto Laravel. Use um servidor web local (por exemplo, o servidor embutido do PHP ou um servidor como o Apache ou Nginx) e acesse o projeto em seu navegador.
+   public function destroy($id)
+   {
+       $task = Task::find($id);
 
-Com essas etapas, você poderá baixar e configurar corretamente as dependências do projeto Laravel ao cloná-lo de um repositório Git.
+       if ($task) {
+           $task->delete();
 
-Lembre-se de consultar a documentação oficial do Laravel para obter mais informações sobre a configuração e execução de projetos Laravel.
+           return response()->json(['message' => 'Tarefa excluída com sucesso']);
+       } else {
+           return response()->json(['error' => 'Tarefa não encontrada'], 404);
+       }
+   }
+}
+```
+
+### Implementação dos modelos e migrações
+No Laravel, utilizamos os modelos para representar as entidades do nosso sistema, nesse caso, a entidade "Task". Podemos criar um modelo para a tarefa utilizando o comando ```"php artisan make:model Task```. Além disso, o Laravel oferece as migrações, que são responsáveis por criar as tabelas no banco de dados. Podemos criar uma migração para a tabela de tarefas utilizando o comando ```php artisan make:migration create_tarefas_table --create=task```.
+
+### Execução das migrações e configuração do banco de dados
+Antes de prosseguir, devemos configurar o arquivo ```.env``` com as informações do banco de dados que iremos utilizar. Em seguida, executamos o comando ```php artisan migrate``` para criar as tabelas no banco de dados. Isso criará a tabela "tasks" com as colunas apropriadas.
+
+### Implementação da lógica nos controladores
+Agora, podemos implementar a lógica necessária em cada método dos controladores para realizar as operações desejadas. Por exemplo, no método ```store``` do controlador de tarefas, podemos receber os dados da nova tarefa, criar uma instância do modelo "Task" e salvá-la no banco de dados.
+
+### Teste da API no Postman
+Com a API implementada, podemos utilizar o Postman para testar os endpoints e verificar se tudo está funcionando conforme o esperado. Podemos enviar requisições para criar, recuperar, atualizar e excluir tarefas, verificando as respostas e os resultados no banco de dados.
+
+### Teste da API Laravel no Postman:
+[![](https://markdown-videos.vercel.app/youtube/Mk82GSmrk4s)](https://www.youtube.com/watch?v=Mk82GSmrk4s)
+
